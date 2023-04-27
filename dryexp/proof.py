@@ -85,44 +85,50 @@ def calc_by_MagnusTetens(air_temperature, humidity, atm_pressure):
     dew_point = (beta * gamma_dp) / (alpha - gamma_dp)
     return dew_point
 
+def calc_by_MagnusTetens2(air_temperature, humidity):
+    alpha = 17.27
+    beta = 237.7
+    gamma_dp = ((alpha * air_temperature) / (beta + air_temperature)) + math.log(humidity / 100.0)
+    dew_point = (beta * gamma_dp) / (alpha - gamma_dp)
+    return dew_point
+
 
 df = pd.read_csv("OBS_ASOS_TIM_20230318155150.csv", encoding="cp949")
 df2 = pd.read_csv("OBS_ASOS_TIM_20230317173225.csv", encoding="cp949")
 df = preproc(df)
 df2 = preproc(df2)
 
-xgbr = XGBR()
-xgbr.fit(
-    df[["기온(°C)", "강수량(mm)", "습도(%)", "현지기압(hPa)", "적설(cm)", "지면온도(°C)"]],
-    df["이슬점온도(°C)"],
-)
-xgbr.score(
-    df2[["기온(°C)", "강수량(mm)", "습도(%)", "현지기압(hPa)", "적설(cm)", "지면온도(°C)"]],
-    df2["이슬점온도(°C)"],
-)
-
+#xgbr = XGBR()
+#xgbr.fit(
+#    df[["기온(°C)", "강수량(mm)", "습도(%)", "현지기압(hPa)", "적설(cm)", "지면온도(°C)"]],
+#    df["이슬점온도(°C)"],
+#)
+#xgbr.score(
+#    df2[["기온(°C)", "강수량(mm)", "습도(%)", "현지기압(hPa)", "적설(cm)", "지면온도(°C)"]],
+#    df2["이슬점온도(°C)"],
+#)
+#
+#df2["out_MT"] = df2.apply(
+#    lambda x: calc_by_MagnusTetens(x["기온(°C)"], x["습도(%)"], x["현지기압(hPa)"]), axis=1
 df2["out_MT"] = df2.apply(
-    lambda x: calc_by_MagnusTetens(x["기온(°C)"], x["습도(%)"], x["현지기압(hPa)"]), axis=1
+    lambda x: calc_by_MagnusTetens2(x["기온(°C)"], x["습도(%)"]), axis=1
 )
-df2["out_XGBR"] = xgbr.predict(
-    df2[["기온(°C)", "강수량(mm)", "습도(%)", "현지기압(hPa)", "적설(cm)", "지면온도(°C)"]]
-)
+#df2["out_XGBR"] = xgbr.predict(
+#    df2[["기온(°C)", "강수량(mm)", "습도(%)", "현지기압(hPa)", "적설(cm)", "지면온도(°C)"]]
+#)
 
 fig = plt.figure(figsize=(10, 10))
 ax = fig.add_subplot(111, projection="3d")
 
 plt.scatter(df2["out_MT"], df2["기온(°C)"], df2["습도(%)"], c="g", alpha=0.2)
-plt.scatter(df2["out_XGBR"], df2["기온(°C)"], df2["습도(%)"], c="b", alpha=0.2)
+#plt.scatter(df2["out_XGBR"], df2["기온(°C)"], df2["습도(%)"], c="b", alpha=0.2)
 plt.scatter(df2["이슬점온도(°C)"], df2["기온(°C)"], df2["습도(%)"], c="r")
 plt.savefig("compare.png")
 
 print("R2 MT: ", get_r2_score(df2["이슬점온도(°C)"], df2["out_MT"]))
-print("R2 XGGR: ", get_r2_score(df2["이슬점온도(°C)"], df2["out_XGBR"]))
+#print("R2 XGGR: ", get_r2_score(df2["이슬점온도(°C)"], df2["out_XGBR"]))
 print("RMSE MT: ", get_rmse(df2["이슬점온도(°C)"], df2["out_MT"]))
-print("RMSE XGGR: ", get_rmse(df2["이슬점온도(°C)"], df2["out_XGBR"]))
+#print("RMSE XGGR: ", get_rmse(df2["이슬점온도(°C)"], df2["out_XGBR"]))
 print("MAX ABS ERROR MT: ", abs(df2["out_MT"] - df2["이슬점온도(°C)"]).max())
-print("MAX ABS ERROR XGGR: ", abs(df2["out_XGBR"] - df2["이슬점온도(°C)"]).max())
+#print("MAX ABS ERROR XGGR: ", abs(df2["out_XGBR"] - df2["이슬점온도(°C)"]).max())
 
-df2[["이슬점온도(°C)", "out_MT", "out_XGBR"]].to_csv(
-    "compare.csv", index=False
-)
