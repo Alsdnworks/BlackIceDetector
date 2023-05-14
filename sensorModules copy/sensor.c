@@ -5,7 +5,7 @@
 #include <math.h>
 
 #define SLAVE_ADDRESS 0x08
-#define PIEZO 12
+#define PIEZO 16
 #define DHTPIN1 10      // Pin where the DHT22 sensor is connected
 #define DHTPIN2 6      // Pin where the DHT22 sensor is connected
 #define DHTTYPE DHT22 // Define the type of sensor
