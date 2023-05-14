@@ -27,7 +27,7 @@ void setup(){
   mlx.begin(); // Start the MLX90614 sensor
   dht1.begin(); // Start the DHT sensor
   dht2.begin(); // Start the DHT sensor
-  for (int i = 0; i < sizeof(ledPin) / sizeof(ledPin[0]); i++) { //init led
+  for (int i = 0; i < 2; i++) { //init led
     pinMode(ledPin[i], OUTPUT);
   }
   pinMode(PIEZO, OUTPUT); //init piezo
